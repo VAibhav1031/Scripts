@@ -1,4 +1,4 @@
-# Hey this is all about how to make container in the Linux without docker , 
+# Hey this is all about how to make container in the Linux without docker (Bare-Bone)
 
 
 - Must know what is the Virtualization, Virtual Machine , why did they used and how they work (if you  dont know go to this link  )
@@ -15,11 +15,8 @@
 
 just git clone the repo 
 
-```
 ``` 
 chmod +x container_setup.sh container_run.sh container_kill.sh
 ```
-```
-```
-```
+
 
