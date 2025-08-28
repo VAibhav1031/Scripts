@@ -15,8 +15,26 @@
 
 just git clone the repo 
 
-``` 
+``` bash
 chmod +x container_setup.sh container_run.sh container_kill.sh
 ```
 
+- For Fresh start 
+```bash
+./ container_setup.sh
+```
 
+- for everytime to create new container 
+
+```bash
+./container_run.sh
+```
+
+- For killing/Removing container
+
+```bash
+./container_kill.sh
+```
+
+---
+*REMEMBER THIS IS STILL IN LEARNING PHASE SETUP , THERE A LOT TO GO*
