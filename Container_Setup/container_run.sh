@@ -48,8 +48,15 @@ sudo chmod +x "$folder_name/overlay/merged/mount_proc.sh"
 
 # Use unshare without --mount-proc. We'll handle the mount manually.
 # The helper script will be the first command run inside the chroot.
+echo_color "DEBUG: Folder name is: $folder_name"
+echo_color "DEBUG: Full chroot path is: $folder_name/overlay/merged"
+echo_color "DEBUG: Listing contents of chroot path:"
+ls -la "$folder_name/overlay/merged/"
+echo_color "DEBUG: Checking if mount_proc.sh exists:"
+ls -la "$folder_name/overlay/merged/mount_proc.sh"
 sudo unshare --mount --uts --ipc --net --fork --pid \
-  chroot "$folder_name/overlay/merged" /mount_proc.sh sleep infinity &
+  chroot "$folder_name/overlay/merged" /mount_proc.sh
+sleep infinity &
 CONTAINER_PID=$!
 
 # (Optional) Clean up the helper script after the container starts
