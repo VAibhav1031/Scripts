@@ -8,12 +8,9 @@ echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 
 # 1  Mount the overlay Fs so container can use it and it would be nice for this
 echo_color "Mounting the overlaysFs (union filesystem) it has lower , upper ,work ,merged, lower will be same rootfs"
-
 sudo mount -t overlay overlay -o "lowerdir=$folder_name/rootfs/,upperdir=$folder_name/overlay/upper,workdir=$folder_name/overlay/work" \
   "$folder_name"/overlay/merged/
-
 echo_color "\n"
-
 echo_color "Copying resolv.conf..." # from the root /etc/ so it iwill be easy for the connection and all stuff
 sudo cp -r /etc/resolv.conf "$folder_name/overlay/merged/etc/resolv.conf"
 
@@ -28,7 +25,7 @@ sudo mount --rbind /dev "$folder_name/overlay/merged/dev"
 # 3 LETS CREATE THE cgroup for the resource control/limitation
 # We have to use this in the container_run.sh because it is (ephemeral) Virtual fs on reboot it will get destroyed, same for all other even in overlaysFs mounting
 echo_color "Creating cgroup..."
-sudo mkdir /sys/fs/cgroup/mycontainer/
+sudo mkdir -p /sys/fs/cgroup/mycontainer/
 # this make a container can only run application under the 200MB only
 echo "200M" | sudo tee /sys/fs/cgroup/mycontainer/memory.max >/dev/null
 # this make like  the container will only able to use 50% of cpu
