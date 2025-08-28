@@ -2,7 +2,7 @@
 
 set -e
 
-folder_name = "$HOME/Container"
+folder_name="$HOME/Container"
 
 echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 
@@ -17,7 +17,6 @@ echo_color "\n"
 
 echo_color "copying resolv.conf..." # from the root /etc/ so it iwill be easy for the connection and all stuff
 sudo cp -r /etc/resolv.conf "$folder_in_need/overlay/merged/etc/resolv.conf"
-
 
 # 2 Mounting Virtual filesystem , it is just for sake the rootfs can use some command esaily , but when the container is initialized most of it is not used caus we run separate process
 # and other namespace
