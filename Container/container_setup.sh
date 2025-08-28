@@ -2,7 +2,7 @@
 
 # so this is what i am trying to do
 #
-
+set -e # this helps in early exit if any commmand fails also know as errexit
 folder_in_need="$HOME/Container"
 
 echo_color() {
@@ -27,6 +27,7 @@ else
 
   if ! command -v debootstrap &>/dev/null; then
     echo_color "debootstrap not installed"
+    sleep 2s
     echo_color "installing..."
     echo_color "..."
 
@@ -42,14 +43,15 @@ else
     fi
   fi
 
+  echo "debootstrap is already present :...:"
   echo "installing the rootfs file for this "
 
   #2 Moost important to have the rootfs where you can play the container as isolation thingg
   echo_color "Building the Debian rootfs with debootstrap (This will take a time, take some coffee)..."
-  sudo debootstrap --variant=build stable bookwarm "$folder_in_need/rootfs" http://deb.debian.org/debian
+  sudo debootstrap --variant=minbase bookworm "$folder_in_need/rootfs" http://deb.debian.org/debian
 
   echo_color "copying resolv.conf..." # from the root /etc/ so it iwill be easy for the connection and all stuff
-  sudo /etc/resolv.conf "$folder_in_need/overlay/merged/etc/resolv.conf"
+  sudo cp -r /etc/resolv.conf "$folder_in_need/overlay/merged/etc/resolv.conf"
 
   echo_color "Setup complete! Rootfs is in $folder_in_need/rootfs"
   echo_color "Now you can use './container_run.sh' to start the container."
