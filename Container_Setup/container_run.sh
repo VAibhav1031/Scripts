@@ -28,7 +28,7 @@ sudo mount --rbind /dev "$folder_name/overlay/merged/dev"
 # 3 LETS CREATE THE cgroup for the resource control/limitation
 # We have to use this in the container_run.sh because it is (ephemeral) Virtual fs on reboot it will get destroyed, same for all other even in overlaysFs mounting
 echo_color "Creating cgroup..."
-mkdir /sys/fs/cgroup/mycontainer/
+sudo mkdir /sys/fs/cgroup/mycontainer/
 # this make a container can only run application under the 200MB only
 echo "200M" | sudo tee /sys/fs/cgroup/mycontainer/memory.max >/dev/null
 # this make like  the container will only able to use 50% of cpu
