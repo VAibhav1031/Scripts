@@ -21,10 +21,10 @@ sudo cp -r /etc/resolv.conf "$folder_in_need/overlay/merged/etc/resolv.conf"
 # 2 Mounting Virtual filesystem , it is just for sake the rootfs can use some command esaily , but when the container is initialized most of it is not used caus we run separate process
 # and other namespace
 echo_color "Mounting the necessary filesystem"
-mount -t proc /proc "$folder_name"/overlay/merged/proc
-mount --rbind /sys "$folder_name"/overlay/merged/sys
-mount --rbind /run "$folder_name"/overlay/merged/run
-mount --rbind /dev "$folder_name"/overlay/merged/dev
+mount -t proc /proc "$folder_name/overlay/merged/proc"
+mount --rbind /sys "$folder_name/overlay/merged/sys"
+mount --rbind /run "$folder_name/overlay/merged/run"
+mount --rbind /dev "$folder_name/overlay/merged/dev"
 
 # 3 LETS CREATE THE cgroup for the resource control/limitation
 # We have to use this in the container_run.sh because it is (ephemeral) Virtual fs on reboot it will get destroyed, same for all other even in overlaysFs mounting
