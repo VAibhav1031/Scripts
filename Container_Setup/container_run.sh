@@ -15,6 +15,10 @@ sudo mount -t overlay overlay -o lowerdir=~/"$folder_name"/rootfs/, \
 
 echo_color "\n"
 
+echo_color "copying resolv.conf..." # from the root /etc/ so it iwill be easy for the connection and all stuff
+sudo cp -r /etc/resolv.conf "$folder_in_need/overlay/merged/etc/resolv.conf"
+
+
 # 2 Mounting Virtual filesystem , it is just for sake the rootfs can use some command esaily , but when the container is initialized most of it is not used caus we run separate process
 # and other namespace
 echo_color "Mounting the necessary filesystem"
