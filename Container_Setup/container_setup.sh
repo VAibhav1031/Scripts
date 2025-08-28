@@ -50,9 +50,6 @@ else
   echo_color "Building the Debian rootfs with debootstrap (This will take a time, take some coffee)..."
   sudo debootstrap --variant=minbase bookworm "$folder_in_need/rootfs" http://deb.debian.org/debian
 
-  echo_color "copying resolv.conf..." # from the root /etc/ so it iwill be easy for the connection and all stuff
-  sudo cp -r /etc/resolv.conf "$folder_in_need/overlay/merged/etc/resolv.conf"
-
   echo_color "Setup complete! Rootfs is in $folder_in_need/rootfs"
   echo_color "Now you can use './container_run.sh' to start the container."
 
