@@ -1,1 +1,3 @@
-HEY This  repo will have my scripts which help in automating my task , currently i am just in making of them 
+#Scripts Repo 
+
+This Repo is for all scripts(Important ones and for normal task) from testing, learning and devolping  i will gonna use 
