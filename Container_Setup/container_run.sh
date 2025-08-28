@@ -17,7 +17,7 @@ sudo cp -r /etc/resolv.conf "$folder_name/overlay/merged/etc/resolv.conf"
 # 2 Mounting Virtual filesystem , it is just for sake the rootfs can use some command esaily , but when the container is initialized most of it is not used caus we run separate process
 # and other namespace
 echo_color "Mounting the necessary filesystem"
-sudo mount -t proc /proc "$folder_name/overlay/merged/proc"
+# sudo mount -t proc /proc "$folder_name/overlay/merged/proc"
 sudo mount --rbind /sys "$folder_name/overlay/merged/sys"
 sudo mount --rbind /run "$folder_name/overlay/merged/run"
 sudo mount --rbind /dev "$folder_name/overlay/merged/dev"
@@ -34,18 +34,31 @@ echo "50000" | sudo tee /sys/fs/cgroup/mycontainer/cpu.max >/dev/null
 #see it is not pure resource isolation like Virtualization do but still it is kindaa , thing separation
 
 # 4 starting container ......druuuuhh...., the problem is most recommend use  "\" for separation bigger command for use but i dont like it
-echo_color "Starting Contianer in background"
+# 4 starting container
+echo_color "Starting Container in background"
+
+# Create a helper script inside the container to mount /proc
+echo_color "Creating mount helper script..."
+sudo tee "$folder_name/overlay/merged/mount_proc.sh" >/dev/null <<'EOF'
+#!/bin/bash
+mount -t proc proc /proc
+exec "$@"
+EOF
+sudo chmod +x "$folder_name/overlay/merged/mount_proc.sh"
+
+# Use unshare without --mount-proc. We'll handle the mount manually.
+# The helper script will be the first command run inside the chroot.
 sudo unshare --mount --uts --ipc --net --fork --pid \
-  --mount-proc="$folder_name/overlay/merged/proc" \
-  chroot "$folder_name/overlay/merged" sleep infinity &
+  chroot "$folder_name/overlay/merged" /mount_proc.sh sleep infinity &
 CONTAINER_PID=$!
+
+# (Optional) Clean up the helper script after the container starts
+sleep 1 # Brief pause to ensure the container started
+sudo rm "$folder_name/overlay/merged/mount_proc.sh"
 
 #5 adding the PID to the
 echo_color "Adding container PID $CONTAINER_PID to the cgroup.procs for management"
 echo $CONTAINER_PID | sudo tee /sys/fs/cgroup/mycontainer/cgroup.procs >/dev/null
-# basically sys provide details about the device and hardware which is running from everything like driver and all stuff , where proc is something
-# like live running processes with the commands also running alongside , without this there is bad communication betwween things
-#
 
 #6 Enter CONTAINER
 echo_color "Entering Container "
@@ -53,4 +66,4 @@ sudo nsenter --target $CONTAINER_PID --all /bin/bash
 
 #
 echo_color "Cleaning up , Please wait...."
-container_kill.sh
+bash ~/Scripts/Container_Setup/container_kill.sh
