@@ -40,7 +40,7 @@ echo "50000" | sudo tee /sys/fs/cgroup/mycontainer/cpu.max >/dev/null
 echo_color "Starting Contianer in background"
 sudo unshare --mount --uts --ipc --net --fork --pid \
   --mount-proc="$folder_name/overlay/merged/proc" \
-  chroot ~/"$folder_name/overlay/merged"sleep infinity &
+  chroot "$folder_name/overlay/merged" sleep infinity &
 CONTAINER_PID=$!
 
 #5 adding the PID to the
