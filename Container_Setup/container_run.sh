@@ -9,9 +9,7 @@ echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 # 1  Mount the overlay Fs so container can use it and it would be nice for this
 echo_color "Mounting the overlaysFs (union filesystem) it has lower , upper ,work ,merged, lower will be same rootfs"
 
-sudo mount -t overlay overlay -o "lowerdir=$folder_name/rootfs/, \
-  upperdir=$folder_name/overlay/upper, \
-  workdir=$folder_name/overlay/work" \
+sudo mount -t overlay overlay -o "lowerdir=$folder_name/rootfs/,upperdir=$folder_name/overlay/upper,workdir=$folder_name/overlay/work" \
   "$folder_name"/overlay/merged/
 
 echo_color "\n"
