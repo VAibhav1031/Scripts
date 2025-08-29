@@ -37,59 +37,37 @@ fi
 #see it is not pure resource isolation like Virtualization do but still it is kindaa , thing separation
 
 # 4 starting container ......druuuuhh...., the problem is most recommend use  "\" for separation bigger command for use but i dont like it
+# 4 starting container
 echo "Starting container (this will be namespace-isolated)..."
+# Start unshare in the background and capture its PID ON THE HOST
 sudo unshare --mount --uts --ipc --net --pid --fork \
   bash -c "
-    set -euo pipefail
-
-    # make mounts private inside the new mount namespace
-    mount --make-rprivate /
-
-    # bind mounts (done inside new mount namespace so they are local to it)
+    # First, mount the host's resources into the container's future root
     mount --rbind /sys '$folder_name/overlay/merged/sys'
     mount --rbind /dev '$folder_name/overlay/merged/dev'
     mount --rbind /run '$folder_name/overlay/merged/run'
 
-    # mount proc inside the NEW PID namespace at the container's /proc
-    mount -t proc proc '$folder_name/overlay/merged/proc'
-
-    # chroot and run sleep as PID 1
-    chroot '$folder_name/overlay/merged' /bin/bash -c \"exec sleep infinity\" &
-    sleep_pid=\$!
-    # print PID to stdout so caller can see it (optional)
-    echo \$sleep_pid > /tmp/mini_container_pid
-    # keep this helper waiting so unshare child stays alive (the sleep is PID 1 inside chroot)
-    wait \$sleep_pid
+    # NOW, change root into the container
+    chroot '$folder_name/overlay/merged' /bin/bash -c '
+        # This command runs INSIDE the chroot AND the PID namespace
+        # Now mount a new procfs for this PID namespace
+        mount -t proc proc /proc
+        # Now run sleep as PID 1
+        exec sleep infinity
+    '
   " &
+CONTAINER_PID=$! # This is the host PID of the unshare process
+sleep 1          # Give it a second to startecho_color "Cleaning up , Please wait...."
 
-# Give the background process a moment to start and write the PID file
-sleep 1
+echo_color "Found host PID of container: $CONTAINER_PID"
 
-# Try to get the sleep PID written by the helper
-if [ -f /tmp/mini_container_pid ]; then
-  CONTAINER_PID=$(cat /tmp/mini_container_pid)
-  sudo rm -f /tmp/mini_container_pid
-  echo_color "Found container PID: $CONTAINER_PID"
-else
-  # fallback: find the sleep process in the system (more fragile)
-  echo_color "Could not find PID file, trying fallback method..."
-  CONTAINER_PID=$(pgrep -f "sleep infinity" | head -n 1 || true)
-  if [ -z "$CONTAINER_PID" ]; then
-    echo_color "ERROR: Could not find the container process. It may have failed to start."
-    exit 1
-  fi
-fi
-
-#5 adding the PID to the
+#5 adding the PID to the cgroup
 echo_color "Adding container PID $CONTAINER_PID to the cgroup.procs for management"
-# attach that PID to cgroup (best-effort)
 if [ -d /sys/fs/cgroup/mycontainer ]; then
   echo "$CONTAINER_PID" | sudo tee /sys/fs/cgroup/mycontainer/cgroup.procs >/dev/null || true
 fi
 
 echo "Entering container shell (nsenter). Type 'exit' to leave and cleanup will run."
-# Open an interactive shell inside all namespaces of the container process
-# Use the container's root as the working directory
-sudo nsenter --target "$CONTAINER_PID" --all --wd="$folder_name/overlay/merged" /bin/bash#
-echo_color "Cleaning up , Please wait...."
+# Now we use the HOST PID to enter the namespaces
+sudo nsenter --target "$CONTAINER_PID" --all --wd="$folder_name/overlay/merged" /bin/bash
 bash Scripts/Container_Setup/container_kill.sh
