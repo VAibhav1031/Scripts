@@ -11,7 +11,7 @@ mkdir -p "$folder_name/overlay"/{lower,upper,work,merged}
 # populate lower if empty
 if [ -z "$(ls -A "$folder_name/overlay/lower" 2>/dev/null)" ]; then
   echo "Copying rootfs into lower (this may take a while)..."
-  cp -a "$folder_name/rootfs/." "$folder_name/overlay/lower/"
+  sudo cp -a "$folder_name/rootfs/." "$folder_name/overlay/lower/"
 fi
 
 # 1  Mount the overlay Fs so container can use it and it would be nice for this
@@ -62,30 +62,34 @@ sudo unshare --mount --uts --ipc --net --pid --fork \
     wait \$sleep_pid
   " &
 
-sleep 0.5
+# Give the background process a moment to start and write the PID file
+sleep 1
+
 # Try to get the sleep PID written by the helper
 if [ -f /tmp/mini_container_pid ]; then
-  CON_PID=$(cat /tmp/mini_container_pid)
-  rm -f /tmp/mini_container_pid
+  CONTAINER_PID=$(cat /tmp/mini_container_pid)
+  sudo rm -f /tmp/mini_container_pid
+  echo_color "Found container PID: $CONTAINER_PID"
 else
   # fallback: find the sleep process in the system (more fragile)
-  CON_PID=$(pgrep -nf "chroot .* sleep infinity" || true)
+  echo_color "Could not find PID file, trying fallback method..."
+  CONTAINER_PID=$(pgrep -f "sleep infinity" | head -n 1 || true)
+  if [ -z "$CONTAINER_PID" ]; then
+    echo_color "ERROR: Could not find the container process. It may have failed to start."
+    exit 1
+  fi
 fi
 
 #5 adding the PID to the
 echo_color "Adding container PID $CONTAINER_PID to the cgroup.procs for management"
 # attach that PID to cgroup (best-effort)
 if [ -d /sys/fs/cgroup/mycontainer ]; then
-  echo "$CON_PID" | sudo tee /sys/fs/cgroup/mycontainer/cgroup.procs >/dev/null || true
+  echo "$CONTAINER_PID" | sudo tee /sys/fs/cgroup/mycontainer/cgroup.procs >/dev/null || true
 fi
 
-# basically sys provide details about the device and hardware which is running from everything like driver and all stuff , where proc is something
-# like live running processes with the commands also running alongside , without this there is bad communication betwween things
-#
-
 echo "Entering container shell (nsenter). Type 'exit' to leave and cleanup will run."
-# open an interactive shell inside all namespaces of the container process
-sudo nsenter --target "$CON_PID" --all --wd "$F/overlay/merged" /bin/bash
-#
+# Open an interactive shell inside all namespaces of the container process
+# Use the container's root as the working directory
+sudo nsenter --target "$CONTAINER_PID" --all --wd="$folder_name/overlay/merged" /bin/bash#
 echo_color "Cleaning up , Please wait...."
 bash Scripts/Container_Setup/container_kill.sh
