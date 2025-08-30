@@ -13,7 +13,7 @@
 --- 
 ## Simple Usage : 
 
-just git clone the repo 
+- just git clone the repo 
 
 ``` bash
 chmod +x container_setup.sh container_run.sh container_kill.sh
@@ -21,7 +21,7 @@ chmod +x container_setup.sh container_run.sh container_kill.sh
 
 - For Fresh start 
 ```bash
-./ container_setup.sh
+./container_setup.sh
 ```
 
 - for everytime to create new container 
