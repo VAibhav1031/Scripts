@@ -22,7 +22,6 @@ if [ -d "$folder_in_need/rootfs" ] && [ "$(ls -A "$folder_in_need/rootfs")" ]; t
 else
   echo_color "No existing rootfs found. Creating directory structure..."
   mkdir -p "$folder_in_need"
-  mkdir -p $folder_in_need/overlay/{lower,upper,work,merged}
   cd "$folder_in_need"
 
   if ! command -v debootstrap &>/dev/null; then
