@@ -7,7 +7,7 @@ container_name="${1:-default}"
 cgrp="${2:-}"
 
 container_dir="$folder_name/$container_name" # cause inside the Container there will be already rootfs
-mkdir -p "$container_dir/{lower,upper,work,merged}"
+mkdir -p "$container_dir/overlay/{lower,upper,work,merged}"
 
 echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 
