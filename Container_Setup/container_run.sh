@@ -3,8 +3,8 @@
 set -e
 
 folder_name="$HOME/Container"
-container_name="$(1:-default)"
-cgrp="$(2:-)"
+container_name="${1:-default}"
+cgrp="${2:-}"
 
 container_dir="$folder_name/$container_name" # cause inside the Container there will be already rootfs
 mkdir -p "$container_dir/{lower,upper,work,merged}"
