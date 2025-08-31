@@ -98,7 +98,7 @@ wait $CONTAINER_PID
 
 echo_color "Cleaning up..."
 
-if [ 'X$cgrp' != 'X']; then
+if [ "X$cgrp" != "X" ]; then
   sudo rmdir "/sys/fs/cgroup/$cgrp" 2>/dev/null || true
 fi
 
