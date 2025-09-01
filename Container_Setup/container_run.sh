@@ -61,6 +61,10 @@ fi
 echo_color "Starting container..."
 # Start unshare in the background and capture its PID ON THE HOST
 echo_color "Type 'exit' to leave and cleanup will run."
+if [ "X$cgrp" != "X" ]; then
+  echo $$ | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null || true
+fi
+
 sudo unshare --mount --uts --ipc --net --pid --fork --propagation private \
   bash -c "
 mount --bind '$container_dir/overlay/merged' '$container_dir/overlay/merged'
@@ -87,21 +91,7 @@ mount -t tmpfs tmpfs /tmp
 exec /bin/bash
 " &
 CONTAINER_PID=$! # This is the host PID of the unshare process
-if [ "X$cgrp" != "X" ]; then
-  echo "$CONTAINER_PID" | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null || true
-fi
-
 wait $CONTAINER_PID
-
-# sleep 1          # Give it a second to startecho_color "Cleaning up , Please wait...."
-#
-# echo_color "Found host PID of container: $CONTAINER_PID"
-#
-# #5 adding the PID to the cgroup
-# echo_color "Adding container PID $CONTAINER_PID to the cgroup.procs for management"
-# if [ -d /sys/fs/cgroup/mycontainer ]; then
-#   echo "$CONTAINER_PID" | sudo tee /sys/fs/cgroup/mycontainer/cgroup.procs >/dev/null || true
-# fi
 
 echo_color "Cleaning up..."
 
