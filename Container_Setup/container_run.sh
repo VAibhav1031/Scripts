@@ -11,7 +11,7 @@ mkdir -p "$container_dir"/overlay/{lower,upper,work,merged}
 
 echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 
-if [ ! -L "$container_dir/overlay/lower" ]; then
+if [ ! -L "$container_dir/overlay/lower" ]; then # directory will be there cause it is in the overlay filesystem
   echo_color "Creating Symlink to rootfs"
   ln -fs "$folder_name/rootfs/" "$container_dir/overlay/lower"
 elif [ -L "$container_dir/overlay/lower" ]; then
@@ -68,25 +68,30 @@ mount --make-private '$container_dir/overlay/merged'
 
 mkdir -p '$container_dir/overlay/merged/oldrootfs'
 cd '$container_dir/overlay/merged'
-pivot_root '$container_dir/overlay/merged' '$container_dir/overlay/mergedoldrootfs'
+echo 'Entering pivot_root' 
+#testing only ehco 
+pivot_root . ./oldrootfs
 
 cd /
+#ls # for testing purpose only 
 umount -l /oldrootfs
 rmdir /oldrootfs
 
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
-mount -t cgroup2 cgroup2 /sys/fs/cgroup
+mount -t cgroup2 cgroup2 /sys/fs/cgroup || true 
 mount -t tmpfs tmpfs /tmp
 
 if [ 'X$cgrp' != 'X' ]; then
-  echo \\\$\\\$ > '/sys/fs/$cgrp/cgroup.procs'
+  echo \\\$\\\$ > '/sys/fs/cgroup/$cgrp/cgroup.procs'
+fi
+
 
 #starting the shell , [exec replaces the current process with following ..]
 exec /bin/bash
 " &
-
 CONTAINER_PID=$! # This is the host PID of the unshare process
+
 wait $CONTAINER_PID
 
 # sleep 1          # Give it a second to startecho_color "Cleaning up , Please wait...."
@@ -101,12 +106,12 @@ wait $CONTAINER_PID
 
 echo_color "Cleaning up..."
 
-if [ -L "$container_dir/overlay/lower"]; then
-  rm "$container_dir/overlay/lower"
-fi
-
 if [ "X$cgrp" != "X" ]; then
   sudo rmdir "/sys/fs/cgroup/$cgrp" 2>/dev/null || true
 fi
 
-sudo umount -l "$container_dir/merged" 2>/dev/null || true
+sudo umount -l "$container_dir/overlay/merged" 2>/dev/null || true
+
+if [ -L "$container_dir/overlay/lower" ]; then
+  rm "$container_dir/overlay/lower"
+fi
