@@ -13,7 +13,9 @@ echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 
 if [ ! -L "$container_dir/overlay/lower" ]; then
   echo_color "Creating Symlink to rootfs"
-  ln -s "$folder_name/rootfs/" "$container_dir/overlay/lower"
+  ln -fs "$folder_name/rootfs/" "$container_dir/overlay/lower"
+elif [ -L "$container_dir/overlay/lower" ]; then
+  echo_color "Symlink already exists, skipping..."
 fi
 
 # 1  Mount the overlay Fs so container can use it and it would be nice for this
@@ -58,10 +60,10 @@ fi
 # 4 starting container
 echo_color "Starting container..."
 # Start unshare in the background and capture its PID ON THE HOST
-echo "Type 'exit' to leave and cleanup will run."
+echo_color "Type 'exit' to leave and cleanup will run."
 sudo unshare --mount --uts --ipc --net --pid --fork --propagation private \
-  bash -c"
-mount --bind '$container_dir/merged" "$container_dir/merged'
+  bash -c "
+mount --bind '$container_dir/merged' '$container_dir/merged'
 mount --make-private '$container_dir/merged'
 
 mkdir -p '$container_dir/merged/oldrootfs'
@@ -79,7 +81,7 @@ mount -t cgroup2 cgroup2 /sys/fs/cgroup
 mount -t tmpfs tmpfs /tmp
 
 if [ 'X$cgrp' != 'X' ]; then
-  echo \$\$ > '/sys/fs/$cgrp/cgroup.procs'
+  echo \\\$\\\$ > '/sys/fs/$cgrp/cgroup.procs'
 
 #starting the shell , [exec replaces the current process with following ..]
 exec /bin/bash
