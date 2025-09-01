@@ -63,16 +63,16 @@ echo_color "Starting container..."
 echo_color "Type 'exit' to leave and cleanup will run."
 sudo unshare --mount --uts --ipc --net --pid --fork --propagation private \
   bash -c "
-mount --bind '$container_dir/merged' '$container_dir/merged'
-mount --make-private '$container_dir/merged'
+mount --bind '$container_dir/overlay/merged' '$container_dir/overlay/merged'
+mount --make-private '$container_dir/overlay/merged'
 
-mkdir -p '$container_dir/merged/oldrootfs'
-cd '$container_dir/merged'
-pivot_root '$container_dir/merged' '$container_dir/rootfs/oldrootfs'
+mkdir -p '$container_dir/overlay/merged/oldrootfs'
+cd '$container_dir/overlay/merged'
+pivot_root . '.oldrootfs'
 
 cd /
-umount -l /oldrootfs
-rmdir /oldrootfs
+umount -l .oldrootfs
+rmdir .oldrootfs
 
 echo_color 'mounting essentials'
 mount -t proc proc /proc
