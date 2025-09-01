@@ -28,7 +28,7 @@ chmod +x container_setup.sh container_run.sh container_kill.sh
 - for everytime to create new container 
 
 ```bash
-./container_run.sh
+./container_run.sh container_name cgroup_directory 
 ```
 
 - For killing/Removing container
@@ -36,7 +36,9 @@ chmod +x container_setup.sh container_run.sh container_kill.sh
 ```bash
 ./container_kill.sh
 ```
-
+### NOTE:
+  - Daemon part is under development , plus for that i am thinking to add some kind of custom init process which  can reap the zombie process
+ 
 ---
 IF YOU CAN HAVE ANY IDEA OR ANY RESOURCE YOU CAN RAISE PR OR A ISSUE 
 *REMEMBER THIS IS STILL IN LEARNING PHASE SETUP , THERE A LOT TO GO*
