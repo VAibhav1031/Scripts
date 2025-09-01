@@ -41,39 +41,48 @@ fi
 echo_color "Starting container..."
 echo_color "Type 'exit' inside container to stop."
 
-if [ -n "$cgrp" ]; then
-  echo $$ | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null
-fi
-
-# Run container
 sudo unshare --mount --uts --ipc --net --pid --fork --propagation private \
   bash -c "
+    # Prepare mount
     mount --bind '$container_dir/overlay/merged' '$container_dir/overlay/merged'
     mount --make-private '$container_dir/overlay/merged'
 
     mkdir -p '$container_dir/overlay/merged/oldrootfs'
-    cd '$container_dir/overlay/merged'
 
-    echo 'Entering pivot_root...'
-    pivot_root . ./oldrootfs || { echo 'pivot_root failed'; exec bash; }
+    echo '>>> Entering pivot_root...'
+    pivot_root '$container_dir/overlay/merged' '$container_dir/overlay/merged/oldrootfs' || {
+        echo 'pivot_root failed'
+        exec bash
+    }
 
-    # now inside container
+    # Now in container root
     cd /
 
-    # unmount oldrootfs safely
-    if mountpoint -q /oldrootfs; then
-      umount -l /oldrootfs || echo 'umount failed'
-      rmdir /oldrootfs || true
-    fi
-
+    # Mount pseudo filesystems
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
-    mount -t cgroup2 cgroup2 /sys/fs/cgroup || true
-    mount -t tmpfs tmpfs /tmp
+    mount -t cgroup2 cgroup2 /sys/fs/cgroup
+    mkdir -p /dev/mqueue
+    mount -t mqueue mqueue /dev/mqueue
 
+    # Bind essential devices from oldroot
+    for name in null full random tty urandom zero; do
+        mount --bind /oldrootfs/dev/\$name /dev/\$name || true
+    done
+
+    # Unmount old root (must be after /proc mount!)
+    umount -l /oldrootfs || echo 'umount failed'
+    rmdir /oldrootfs 2>/dev/null || true
+
+    echo '>>> Container ready. Type exit to quit.'
     exec /bin/bash
   " &
 CONTAINER_PID=$!
+
+# Assign correct PID to cgroup
+if [ -n "$cgrp" ]; then
+  echo $CONTAINER_PID | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null
+fi
 
 wait $CONTAINER_PID
 
