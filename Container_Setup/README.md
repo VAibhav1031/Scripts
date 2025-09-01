@@ -28,7 +28,7 @@ chmod +x container_setup.sh container_run.sh container_kill.sh
 - for everytime to create new container 
 
 ```bash
-./container_run.sh container_name cgroup_directory 
+./container_run.sh 'container_name' 'cgroup_directory' 
 ```
 
 - For killing/Removing container
