@@ -55,13 +55,16 @@ sudo unshare --mount --uts --ipc --net --pid --fork --propagation private \
     cd '$container_dir/overlay/merged'
 
     echo 'Entering pivot_root...'
-    pivot_root . ./oldrootfs
+    pivot_root . ./oldrootfs || { echo 'pivot_root failed'; exec bash; }
 
+    # now inside container
     cd /
 
-    # cleanup old root
-    umount -l /oldrootfs
-    rmdir /oldrootfs || true
+    # unmount oldrootfs safely
+    if mountpoint -q /oldrootfs; then
+      umount -l /oldrootfs || echo 'umount failed'
+      rmdir /oldrootfs || true
+    fi
 
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
