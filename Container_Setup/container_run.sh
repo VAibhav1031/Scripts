@@ -12,7 +12,8 @@ mkdir -p "$container_dir"/overlay/{lower,upper,work,merged}
 echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 
 if [ ! -L "$container_dir/overlay/lower" ]; then
-  ln -s "$folder_name/rootfs" "$container_dir/overlay/lower"
+  echo_color "Creating Symlink to rootfs"
+  ln -s "$folder_name/rootfs/" "$container_dir/overlay/lower"
 fi
 
 # 1  Mount the overlay Fs so container can use it and it would be nice for this
@@ -32,7 +33,7 @@ sudo cp -L /etc/resolv.conf "$container_dir/overlay/merged/etc/resolv.conf" || t
 # Current problem is more definite i would say we are creating the crgoup but dont know why we are
 # giving the
 
-if [ "X$cgrp" != "X"]; then
+if [ "X$cgrp" != "X" ]; then
   echo_color "Creating cgroup..."
   if [ -d /sys/fs/cgroup/ ]; then
     sudo mkdir -p "/sys/fs/cgroup/$cgrp" || true
@@ -71,7 +72,7 @@ cd /
 umount -l /oldrootfs
 rmdir /oldrootfs
 
-echo_color "mounting essentials"
+echo_color 'mounting essentials'
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t cgroup2 cgroup2 /sys/fs/cgroup
@@ -101,13 +102,10 @@ echo_color "Cleaning up..."
 
 if [ -L "$container_dir/overlay/lower"]; then
   rm "$container_dir/overlay/lower"
+fi
 
 if [ "X$cgrp" != "X" ]; then
   sudo rmdir "/sys/fs/cgroup/$cgrp" 2>/dev/null || true
 fi
 
 sudo umount -l "$container_dir/merged" 2>/dev/null || true
-
-#for safe other cleanups like unsahre process and
-# yeah i think if i umount the root fs container_dir/merged then why to umount other stuff
-#bash Scripts/Container_Setup/container_kill.sh
