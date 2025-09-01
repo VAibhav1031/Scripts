@@ -1,108 +1,84 @@
 #!/bin/bash
-
-set -e
+set -euo pipefail
 
 folder_name="$HOME/Container"
 container_name="${1:-default}"
 cgrp="${2:-}"
 
-container_dir="$folder_name/$container_name" # cause inside the Container there will be already rootfs
+container_dir="$folder_name/$container_name"
+
+# Create overlay structure
 mkdir -p "$container_dir"/overlay/{lower,upper,work,merged}
 
 echo_color() { echo -e "\e[1;32m$1\e[0m"; }
 
-if [ ! -L "$container_dir/overlay/lower" ]; then # directory will be there cause it is in the overlay filesystem
-  echo_color "Creating Symlink to rootfs"
-  ln -fs "$folder_name/rootfs/" "$container_dir/overlay/lower"
-elif [ -L "$container_dir/overlay/lower" ]; then
+# Symlink lowerdir to rootfs
+if [ ! -L "$container_dir/overlay/lower" ]; then
+  echo_color "Creating symlink to rootfs..."
+  ln -fs "$folder_name/rootfs" "$container_dir/overlay/lower"
+else
   echo_color "Symlink already exists, skipping..."
 fi
 
-# 1  Mount the overlay Fs so container can use it and it would be nice for this
-echo_color "Mounting the overlaysFs for container : $container_name"
-sudo mount -t overlay overlay -o "lowerdir=$folder_name/rootfs/,upperdir=$container_dir/overlay/upper,workdir=$container_dir/overlay/work" \
-  "$container_dir"/overlay/merged/
-echo_color ""
+# Mount overlay
+echo_color "Mounting overlayfs..."
+sudo mount -t overlay overlay \
+  -o "lowerdir=$folder_name/rootfs,upperdir=$container_dir/overlay/upper,workdir=$container_dir/overlay/work" \
+  "$container_dir/overlay/merged"
 
-echo_color "Copying resolv.conf..." # from the root /etc/ so it iwill be easy for the connection and all stuff
+# Copy DNS
+echo_color "Copying resolv.conf..."
 sudo cp -L /etc/resolv.conf "$container_dir/overlay/merged/etc/resolv.conf" || true
 
-# 3 LETS CREATE THE cgroup for the resource control/limitation
-# We have to use this in the container_run.sh because it is (ephemeral) Virtual fs on reboot it will get destroyed, same for all other even in overlaysFs mounting
-# it is  bit straight with creation
-#
-#
-# Current problem is more definite i would say we are creating the crgoup but dont know why we are
-# giving the
-
-if [ "X$cgrp" != "X" ]; then
+# Create cgroup if requested
+if [ -n "$cgrp" ]; then
   echo_color "Creating cgroup..."
-  if [ -d /sys/fs/cgroup/ ]; then
-    sudo mkdir -p "/sys/fs/cgroup/$cgrp" || true
-
-    # this make a container can only run application under the 200MB only
-    echo "500M" | sudo tee "/sys/fs/cgroup/$cgrp/memory.max" >/dev/null || true
-    # this make like  the container will only able to use 50% of cpu
-    echo "50000 100000" | sudo tee "/sys/fs/cgroup/$cgrp/cpu.max" >/dev/null || true
-
-    # will check in future
-    # sudo bash -c "cd '/sys/fs/cgroup/$cgrp'
-    # digit_files=$(ls $(cat /sys/kernel/cgroup/delegate) 2>/dev/null)
-    # chown '$(id -u):$(id -g)' . $digit_files 2>/dev/null"
-  fi
+  sudo mkdir -p "/sys/fs/cgroup/$cgrp" || true
+  echo "500M" | sudo tee "/sys/fs/cgroup/$cgrp/memory.max" >/dev/null
+  echo "50000 100000" | sudo tee "/sys/fs/cgroup/$cgrp/cpu.max" >/dev/null
 fi
 
-# DELEGATE THE CGROUP TO THE USER INVOKING THIS SCRIPT / For the changing of the ownereship of managing the subheirarchy of the cgroup
-
-#see it is not pure resource isolation like Virtualization do but still it is kindaa , thing separation
-
-# 4 starting container ......druuuuhh...., the problem is most recommend use  "\" for separation bigger command for use but i dont like it
-# 4 starting container
 echo_color "Starting container..."
-# Start unshare in the background and capture its PID ON THE HOST
-echo_color "Type 'exit' to leave and cleanup will run."
-if [ "X$cgrp" != "X" ]; then
-  echo $$ | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null || true
+echo_color "Type 'exit' inside container to stop."
+
+if [ -n "$cgrp" ]; then
+  echo $$ | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null
 fi
 
+# Run container
 sudo unshare --mount --uts --ipc --net --pid --fork --propagation private \
   bash -c "
-mount --bind '$container_dir/overlay/merged' '$container_dir/overlay/merged'
-mount --make-private '$container_dir/overlay/merged'
+    mount --bind '$container_dir/overlay/merged' '$container_dir/overlay/merged'
+    mount --make-private '$container_dir/overlay/merged'
 
-mkdir -p '$container_dir/overlay/merged/oldrootfs'
-cd '$container_dir/overlay/merged'
-echo 'Entering pivot_root' 
-#testing only ehco 
-pivot_root . ./oldrootfs || { echo "pivot_root failed"; exit 1; }
+    mkdir -p '$container_dir/overlay/merged/oldrootfs'
+    cd '$container_dir/overlay/merged'
 
+    echo 'Entering pivot_root...'
+    pivot_root . ./oldrootfs
 
-cd /
+    cd /
 
-umount -l /oldrootfs 
-[ -d /oldrootfs ] && rmdir /oldrootfs 2>/dev/null || true
+    # cleanup old root
+    umount -l /oldrootfs
+    rmdir /oldrootfs || true
 
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
-mount -t cgroup2 cgroup2 /sys/fs/cgroup 2>/dev/null || true 
-mount -t tmpfs tmpfs /tmp
+    mount -t proc proc /proc
+    mount -t sysfs sysfs /sys
+    mount -t cgroup2 cgroup2 /sys/fs/cgroup || true
+    mount -t tmpfs tmpfs /tmp
 
+    exec /bin/bash
+  " &
+CONTAINER_PID=$!
 
-#starting the shell , [exec replaces the current process with following ..]
-[ -x /bin/bash ] || { echo "/bin/bash missing in rootfs"; exit 1; }
-# exec /bin/bash
-" &
-CONTAINER_PID=$! # This is the host PID of the unshare process
 wait $CONTAINER_PID
 
 echo_color "Cleaning up..."
 
-if [ "X$cgrp" != "X" ]; then
+if [ -n "$cgrp" ]; then
   sudo rmdir "/sys/fs/cgroup/$cgrp" 2>/dev/null || true
 fi
 
 sudo umount -l "$container_dir/overlay/merged" 2>/dev/null || true
-
-if [ -L "$container_dir/overlay/lower" ]; then
-  rm "$container_dir/overlay/lower"
-fi
+[ -L "$container_dir/overlay/lower" ] && rm "$container_dir/overlay/lower"
