@@ -74,11 +74,12 @@ mkdir -p '$container_dir/overlay/merged/oldrootfs'
 cd '$container_dir/overlay/merged'
 echo 'Entering pivot_root' 
 #testing only ehco 
-pivot_root . ./oldrootfs
+pivot_root . ./oldrootfs || { echo "pivot_root failed"; exit 1; }
+
 
 cd /
 
-umount -l /oldrootfs 2>/dev/null || true
+umount -l /oldrootfs 
 [ -d /oldrootfs ] && rmdir /oldrootfs 2>/dev/null || true
 
 mount -t proc proc /proc
@@ -88,7 +89,8 @@ mount -t tmpfs tmpfs /tmp
 
 
 #starting the shell , [exec replaces the current process with following ..]
-exec /bin/bash
+[ -x /bin/bash ] || { echo "/bin/bash missing in rootfs"; exit 1; }
+# exec /bin/bash
 " &
 CONTAINER_PID=$! # This is the host PID of the unshare process
 wait $CONTAINER_PID
