@@ -40,5 +40,5 @@ chmod +x container_setup.sh container_run.sh container_kill.sh
   - Daemon part is under development , plus for that i am thinking to add some kind of custom init process which  can reap the zombie process
  
 ---
-IF YOU CAN HAVE ANY IDEA OR ANY RESOURCE YOU CAN RAISE PR OR A ISSUE 
-*REMEMBER THIS IS STILL IN LEARNING PHASE SETUP , THERE A LOT TO GO*
+IF YOU CAN HAVE ANY IDEA OR ANY RESOURCE YOU CAN RAISE PR OR A ISSUE   
+*REMEMBER THIS IS STILL IN LEARNING PHASE SETUP (USE IN VM) , THERE A LOT TO GO*
