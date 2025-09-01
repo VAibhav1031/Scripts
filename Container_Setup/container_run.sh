@@ -17,12 +17,12 @@ fi
 
 # 1  Mount the overlay Fs so container can use it and it would be nice for this
 echo_color "Mounting the overlaysFs for container : $container_name"
-sudo mount -t overlay -o "lowerdir=$folder_name/rootfs/,upperdir=$container_dir/overlay/upper,workdir=$container_dir/overlay/work" \
-  overlay "$container_dir"/merged/
+sudo mount -t overlay overlay -o "lowerdir=$folder_name/rootfs/,upperdir=$container_dir/overlay/upper,workdir=$container_dir/overlay/work" \
+  "$container_dir"/overlay/merged/
 echo_color ""
 
 echo_color "Copying resolv.conf..." # from the root /etc/ so it iwill be easy for the connection and all stuff
-sudo cp -L /etc/resolv.conf "$folder_name/overlay/merged/etc/resolv.conf" || true
+sudo cp -L /etc/resolv.conf "$container_dir/overlay/merged/etc/resolv.conf" || true
 
 # 3 LETS CREATE THE cgroup for the resource control/limitation
 # We have to use this in the container_run.sh because it is (ephemeral) Virtual fs on reboot it will get destroyed, same for all other even in overlaysFs mounting
@@ -71,6 +71,7 @@ cd /
 umount -l /oldrootfs
 rmdir /oldrootfs
 
+echo_color "mounting essentials"
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t cgroup2 cgroup2 /sys/fs/cgroup
@@ -97,6 +98,9 @@ wait $CONTAINER_PID
 # fi
 
 echo_color "Cleaning up..."
+
+if [ -L "$container_dir/overlay/lower"]; then
+  rm "$container_dir/overlay/lower"
 
 if [ "X$cgrp" != "X" ]; then
   sudo rmdir "/sys/fs/cgroup/$cgrp" 2>/dev/null || true
