@@ -73,24 +73,23 @@ echo 'Entering pivot_root'
 pivot_root . ./oldrootfs
 
 cd /
-#ls # for testing purpose only 
-umount -l /oldrootfs
-rmdir /oldrootfs
+
+umount -l /oldrootfs 2>/dev/null || true
+[ -d /oldrootfs ] && rmdir /oldrootfs 2>/dev/null || true
 
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
-mount -t cgroup2 cgroup2 /sys/fs/cgroup || true 
+mount -t cgroup2 cgroup2 /sys/fs/cgroup 2>/dev/null || true 
 mount -t tmpfs tmpfs /tmp
-
-if [ 'X$cgrp' != 'X' ]; then
-  echo \\\$\\\$ > '/sys/fs/cgroup/$cgrp/cgroup.procs'
-fi
 
 
 #starting the shell , [exec replaces the current process with following ..]
 exec /bin/bash
 " &
 CONTAINER_PID=$! # This is the host PID of the unshare process
+if [ "X$cgrp" != "X" ]; then
+  echo "$CONTAINER_PID" | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null || true
+fi
 
 wait $CONTAINER_PID
 
