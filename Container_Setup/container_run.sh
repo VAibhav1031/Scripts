@@ -68,13 +68,12 @@ mount --make-private '$container_dir/overlay/merged'
 
 mkdir -p '$container_dir/overlay/merged/oldrootfs'
 cd '$container_dir/overlay/merged'
-pivot_root . '.oldrootfs'
+pivot_root '$container_dir/overlay/merged' '$container_dir/overlay/mergedoldrootfs'
 
 cd /
-umount -l .oldrootfs
-rmdir .oldrootfs
+umount -l /oldrootfs
+rmdir /oldrootfs
 
-echo_color 'mounting essentials'
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t cgroup2 cgroup2 /sys/fs/cgroup
