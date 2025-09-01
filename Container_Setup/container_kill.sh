@@ -18,12 +18,4 @@ if [ -n "$CONTAINER_PID" ]; then
 else
   each_color "There is no container process found"
 
-# umount everything i used 
-sudo umount -l  "$folder"/overlay/merged/sys 2>dev/null || true  
-sudo umount -l "$folder"/overlay/merged/dev 2>dev/null || true  
-sudo umount -l "$folder"/overlay/merged/proc 2>dev/null || true  
-sudo umount -l "$folder"/overlay/merged/run 2>dev/null || true  
-sudo umount -l "$folder"/overlay/merged 2>dev/null || true    
 
-
-each_color "Container stopped :)...)"

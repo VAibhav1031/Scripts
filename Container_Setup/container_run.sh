@@ -94,17 +94,13 @@ if [ "$mode" = "daemon" ]; then
       # Unmount old root (must be after /proc mount!)
       umount -l /oldrootfs || echo 'umount failed'
       rmdir /oldrootfs 2>/dev/null || true
-
-      # exec command helps in replacing current process with the following
-      echo 'Type exit to quit.'
-  
-      exec /bin/bash
+      exec sleep infinity
     " &
   # I removed & which was for the running the  command in background
   CONTAINER_PID=$! # immediate capture of the pid of the process
 
   # Assign correct PID to cgroup, else BOOOM!!!!!!!
-  if [ -n "$cgrp" ]; then
+  if [ -n "$cgrp" ] && [ -d '/sys/fs/cgroup/$cgrp/cgroup.procs/cgroup.procs' ]; then
     echo $CONTAINER_PID | sudo tee "/sys/fs/cgroup/$cgrp/cgroup.procs" >/dev/null
   fi
 
