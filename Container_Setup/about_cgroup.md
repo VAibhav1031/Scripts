@@ -46,7 +46,7 @@ like this
 here you are seeing all controller's in the cgroup, these are also filesystem on their own (idk why they were ), so to make any process control 
 you have to make the  folder in one of these controller and  there is heirarchy system (the reason v1  was bad)
 
-🏗️ In v1 — Hierarchies & Controllers
+### In v1 — Hierarchies & Controllers
 
 Each controller (CPU, memory, blkio, devices, etc.) is like a plugin that applies some resource policy.
 
@@ -89,7 +89,7 @@ PID 1234 is in:
 So CPU rules come from one tree, memory rules from another, blkio from yet another.
 
 ## Why this was messy in v1
-The kernel had to track multiple trees per process → hard to reason about.
+The kernel had to track multiple trees per process --> hard to reason about.
 So Docker, systemd, etc. had to do a lot of bookkeeping to make sure processes ended up in the “right” cgroups across controllers.
 
 
