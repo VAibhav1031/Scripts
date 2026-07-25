@@ -7,7 +7,7 @@
   Containers syscall are pretty much differently treated for extra protection  even though there are  `rootless`  way is also there
   Cgroup is there for resource capping usage for example if we want that this container cant use more than 20% of total CPU  or Memory and simlar config in the I/O also.  Cgroup help in the management of that
   And at last in this container intro i can say  they run on same host Kernel not any other kernel is being used 
-
+- Pivot Root , Chroot would be also helpful to know which heelp in using the rootfs and all thing , and how `pivot_root` it more efficiently ..
 - Docker and OCI made it more general , with fix specification  , else it was pain for sysadmin's to create all stuff and maintain 
 - What container concept is just running application in isolated environment at very low thin separation between resource , like process , network, hostname , memory , cpu and other things. 
   Container make application believe like it is running in separate environment and there is only one process running which is that container only (which isnt True)
@@ -40,7 +40,7 @@ sudo chmod +x container_setup.sh container_run.sh container_kill.sh
 ./container_kill.sh
 ```
 ### NOTE:
-  - Daemon part is under development , plus for that i am thinking to add some kind of custom init process which  can reap the zombie process
+  - Daemon part is under development , plus for that i am thinking to add some kind of custom init process which  can reap the zombie process..
  
 ---
 IF YOU CAN HAVE ANY IDEA OR ANY RESOURCE YOU CAN RAISE PR OR A ISSUE   
