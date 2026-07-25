@@ -1,15 +1,18 @@
 # Hey this is all about how to make container in the Linux without docker (Bare-Bone)
 
 
-- Must know what is the Virtualization, Virtual Machine , why did they used and how they work (if you  dont know go to this link  )
-- container is just like running a process in a isolation of resource (mostly) there is very thin layer separation (for resource's), but yeah with a lot of spec(mainly namespaces like uts,      ipc, net, pid, and cgroup). 
-  Cgroup here is main , it is the one which make things more serious with all type of control's from memory , Ram , I/O ..To CPU , (The new V2 is more unified than the old V1)
+- Must know what is the Virtualization, Virtual Machine , why did they used and how they work
+- contianer is just like another process running with some extra around it running along  making it special , and making the process running inside the container feel isolated  even thought isolataion of resources (mostly thin) .
+  container process  run on `OverLayFs` ,use `namespace` isolation (uts,ipc, net, pid, and cgroup) , Different `rootfs` is being used to make your main root directory clean rather cluttering with the containers package  bianries ,
+  Containers syscall are pretty much differently treated for extra protection  even though there are  `rootless`  way is also there
+  Cgroup is there for resource capping usage for example if we want that this container cant use more than 20% of total CPU  or Memory and simlar config in the I/O also.  Cgroup help in the management of that
+  And at last in this container intro i can say  they run on same host Kernel not any other kernel is being used 
 
 - Docker and OCI made it more general , with fix specification  , else it was pain for sysadmin's to create all stuff and maintain 
 - What container concept is just running application in isolated environment at very low thin separation between resource , like process , network, hostname , memory , cpu and other things. 
   Container make application believe like it is running in separate environment and there is only one process running which is that container only (which isnt True)
 - This help company to run more than one application with using container on the machine(even VM) without  compromising on the resource and other stuff 
-- more details will be there ... 
+- Liz Rice video on this  topic at goto confrence on youtube is also a great to understand.                   
 
 --- 
 ## Simple Usage : 
@@ -17,7 +20,7 @@
 - just git clone the repo 
 
 ``` bash
-chmod +x container_setup.sh container_run.sh container_kill.sh
+sudo chmod +x container_setup.sh container_run.sh container_kill.sh
 ```
 
 - For Fresh start 
