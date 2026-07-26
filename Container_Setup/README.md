@@ -10,10 +10,13 @@
 - Pivot Root , Chroot would be also helpful to know which heelp in using the rootfs and all thing , and how `pivot_root` it more efficiently ..
 - Docker and OCI made it more general , with fix specification  , else it was pain for sysadmin's to create all stuff and maintain 
 - What container concept is just running application in isolated environment at very low thin separation between resource , like process , network, hostname , memory , cpu and other things. 
-  Container make application believe like it is running in separate environment and there is only one process running which is that container only (which isnt True)
-- This help company to run more than one application with using container on the machine(even VM) without  compromising on the resource and other stuff 
-- Liz Rice video on this  topic at goto confrence on youtube is also a great to understand.                   
+  Container make application believe like it is running in separate environment and there is only one process running which is that container only (which isnt True).This help company to run more than one
+  application with using container on the machine(even VM) without  compromising on the resource and other stuff 
 
+### Refrence's :
+  - [Liz Rice's Container From Scratch](https://youtu.be/8fi7uSYlOdc?si=p4kyfz_VIS1fOKTQ)                   
+  - [Build Your Container Runtime](https://youtu.be/JOsWB50LmwQ?si=AFhh3iPInvKwHzMJ)
+  - [Detailed Contianer in Linux Explaination by Micheal Kerrisk](https://youtu.be/4RUiVAlJE2w?si=3sYVOE5v_-dPN7j6)
 --- 
 ## Simple Usage : 
 
@@ -39,8 +42,8 @@ sudo chmod +x container_setup.sh container_run.sh container_kill.sh
 ```bash
 ./container_kill.sh
 ```
-### NOTE:
-  - Daemon part is under development , plus for that i am thinking to add some kind of custom init process which  can reap the zombie process..
+  NOTE:
+  > Daemon part is under development , plus for that i am thinking to add some kind of custom init process which  can reap the zombie processes...
  
 ---
 IF YOU CAN HAVE ANY IDEA OR ANY RESOURCE YOU CAN RAISE PR OR A ISSUE   
